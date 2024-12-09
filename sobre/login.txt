@@ -1,0 +1,5 @@
+Usuário cadastrado junto com a criação do banco 
+Usuário administrador (Pode alterar os dados na aba "Administrador") >
+
+	Usuário: admin	
+	Senha: admin

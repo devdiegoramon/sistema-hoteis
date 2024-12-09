@@ -1,0 +1,47 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
+
+.block-header .breadcrumb {
+    font-size: 14px;
+    margin-top: 2px;
+    background: transparent;
+    text-transform: uppercase;
+}
+
+#header {
+    width: 100%;
+    height: auto;
+    border-bottom: 1px solid darkgrey;
+}
+
+.links ul {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap
+}
+
+.links ul a {
+    border: 1px solid black;
+    border-radius: 1px;
+    margin: 0 10px;
+    margin-top: 10px;
+    padding: 0 25px;
+    list-style: none;
+    color: black;
+    cursor: pointer;
+}
+
+.links ul a {
+    font-size: 20px;
+    text-decoration: none;
+    color: black;
+}
+
+.links ul a:hover {
+    -webkit-box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.08);
+    box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.08);
+}

@@ -1,0 +1,66 @@
+*,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #dbe3e9
+}
+
+.container-login {
+    width: 800px;
+    border-radius: 15px;
+}
+
+.left {
+    background-color: #fafafa;
+}
+
+.slogan {
+    text-align: center;
+    font-size: 15px;
+}
+
+.topic-inn {
+    border-radius: .2em;
+    padding: 1rem .5rem;
+    margin: 5px 0;
+    background-color: #fafafa;    
+}
+
+.text-inn {
+    font-size: 1.1rem;
+    text-align: center;
+    border-bottom: 1px solid rgb(179, 179, 179);
+}
+
+.right {
+    background-color: #fafafa;
+}
+
+@media (max-width: 1100px) {
+    .container-login {
+        width: 80%;
+    }
+}
+
+/* FORMULARIO */
+.input-login {
+    width: 100%;
+    border: none;
+    border-left: 10px solid #2262a0;
+    border-radius: 2px;
+    background-color: #F0F0F0;
+    height: 40px;
+    padding: 10px;
+}
+
+.input-login:focus {
+    outline: #2262a0;
+    border: none;
+}

@@ -1,0 +1,11 @@
+{
+    "name": "vendor/projeto-pousada-2-2",
+    "description": "Description of project projeto-pousada-2.2.",
+    "authors": [
+        {
+            "name": "Herrison",
+            "email": "your@email.here"
+        }
+    ],
+    "require": {}
+}

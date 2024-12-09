@@ -1,0 +1,74 @@
+Sistema desenvolvido em: 
+	PHP 7.4 - procedural
+	Mysql 
+	JavaScript
+	Jquery
+	Bootstrap 5
+
+
+Funcionalidades do sistema: 
+
+	Cadastro de Hospedes / Clientes;
+	Cadastro de Estacionamento;
+	Cadastro de Acomodações / Quartos;
+	Controle de Estoque simples;
+	Cadastro de Frigobar por acomodações;
+	Gestão de reservas;
+	Relatórios financeiros;
+	Cadastro de funcionários
+	
+	Clientes >	
+		- Cadastrar clientes
+		- Visualizar clientes
+		- Editar clientes
+		- Ativar / Desativar clientes
+	
+	Estacionamento > 
+		- Cadastrar vagas de estacionamento (Pode ser vinculada ao quarto acomodação posteriormente)
+		- Visualizar vagas de estacionamento
+		- Excluir vagas de estacionamento
+	
+	Acomodações > 
+		- Cadastrar tipo de acomodação. Ex: Suite / Apartamento / Quarto
+		- Visualizar tipos de acomodações
+		- Ativar / Desativar tipos de acomodações
+		- Editar tipo de acomodação
+		- Cadastrar acomodação / quarto
+ 		- Visualizar acomodações
+		- Ativar / Desativar acomodação
+		- Editar acomodação
+		- Visualizar dados da acomodação onde:
+			. Visualizar vagas de estacionamento 
+			. Vincular / desvincular vagas de estacionamento
+			. Visualizar histórico de reservas da acomodação em questão
+	
+	Estoque > 
+		- Cadastrar categoria de item. Ex: Bebidas / Comidas 
+		- Adicionar novos itens ao estoque
+		- Visualizar itens em estoque
+		- Adicionar entrada em itens existentes no estoque
+		- Adicioanr saida em itens existentes no estoque
+	
+	Frigobar > 
+		- Cadastrar frigobar por acomodação
+		- Editar frigobar
+		- Ativar / Desativar frigobar
+		- Visualização avançada de dados do frigobar onde:
+			. Cadastrar itens do estoque para dentro do frigobar (automáticamente a quantidade de itens é retirada do estoque)
+			. Visualizar itens cadastrados para o frigobar
+			. Retirar itens do frigobar (retorna ao estoque)				
+		
+	Reservas >
+		- Cadastrar reservas por ranged de datas
+		- Visualizar reservas (Pendentes, iniciadas, finalizadas e canceladas) 
+		- Visualizar determinadas reservas
+		- Realizar checkin 
+		- Realizar checkout
+		- Adicionar item consumido de dentro do frigobar
+		- Adicionar outros consumos
+				
+email para contato > diegoramonsm@gmail.com
+
+
+
+
