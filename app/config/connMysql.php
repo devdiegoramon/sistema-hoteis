@@ -1,14 +1,13 @@
 <?php
+// Conectar ao banco de dados
+$con = mysqli_connect('localhost', 'root', '', 'sistema_hoteis_prosync');
 
-$con = mysqli_connect('localhost', 'root', '', 'innjoy_1_0_0');
-$sql = "SET NAMES 'utf8'";
-mysqli_query($con, $sql);
+// Verificar se a conexão foi bem-sucedida
+if (!$con) {
+    die("Erro ao conectar ao banco de dados: " . mysqli_connect_error());
+}
 
-$sql = 'SET character_set_connection=utf8';
-mysqli_query($con, $sql);
+// Configurar o charset para UTF-8
+mysqli_set_charset($con, 'utf8');
 
-$sql = 'SET character_set_client=utf8';
-mysqli_query($con, $sql);
-
-$sql = 'SET character_set_results=utf8';
-$res = mysqli_query($con, $sql);
+// Pronto! A conexão está ativa e configurada para UTF-8.
