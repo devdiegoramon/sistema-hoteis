@@ -18,8 +18,6 @@ if ($con->connect_error) {
     die("Erro de conexão: " . $con->connect_error);
 }
 
-echo "Conexão bem-sucedida!";
-
 // Função para obter os produtos do estoque
 function obterProdutosEstoque($offset, $limit) {
     global $con;
@@ -88,6 +86,23 @@ if (isset($_GET['id']) && isset($_POST['quantidade'])) {
     } else {
         echo "Selecione uma quantidade maior que 0.";
     }
+}
+
+// Função para limpar o carrinho e devolver as quantidades ao estoque
+if (isset($_POST['limpar_carrinho'])) {
+    foreach ($_SESSION['carrinho'] as $item) {
+        $quantidade_restaurada = $item['quantidade'];
+        $iditem = (int)$item['iditem'];
+
+        // Atualiza o estoque
+        $update_sql = "UPDATE estoque SET quantidade = quantidade + {$quantidade_restaurada} WHERE iditem = {$iditem}";
+        mysqli_query($con, $update_sql);
+    }
+
+    // Limpa o carrinho
+    unset($_SESSION['carrinho']);
+    header("Location: index.php");  // Redireciona para evitar reenvio do formulário
+    exit;
 }
 
 // Exibindo os produtos
@@ -315,6 +330,11 @@ $produtos = obterProdutosEstoque($offset, $itens_por_pagina);
             echo "<p>Itens no carrinho: {$quantidade_total}</p>";
             echo "<p>Total: R$ " . number_format($valor_total, 2, ',', '.') . "</p>";
             echo "<button>Comprar</button>";
+            
+            // Botão de limpar carrinho
+            echo "<form method='POST' action=''>
+                    <button type='submit' name='limpar_carrinho'>Limpar Carrinho</button>
+                  </form>";
         } else {
             echo "<p>Seu carrinho está vazio.</p>";
         }
