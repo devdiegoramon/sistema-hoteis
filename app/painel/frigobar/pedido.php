@@ -1,5 +1,5 @@
 <?php
-// frigobar/pedido.php
+// /pedido.php
 
 // Função de incluir funções do frigobar
 include_once('../func.php');
