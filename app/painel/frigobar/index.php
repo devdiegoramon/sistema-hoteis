@@ -214,7 +214,7 @@ $produtos = obterProdutosEstoque($offset, $itens_por_pagina);
         }
 
         form input[type="number"] {
-            width: 80%;
+            width: 40%;
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ddd;
@@ -223,9 +223,9 @@ $produtos = obterProdutosEstoque($offset, $itens_por_pagina);
         }
 
         form button {
-            width: 80%;  /* Garantindo que o botão também ocupe a largura do celular */
+            width: 40%;
             padding: 12px;
-            font-size: 18px;
+            font-size: 16px;
             background-color: #007bff;
             color: white;
             border: none;
@@ -240,6 +240,11 @@ $produtos = obterProdutosEstoque($offset, $itens_por_pagina);
 
         form button:active {
             background-color: #003d80;
+        }
+
+        /* Espaço entre os botões */
+        .cart-summary button + button {
+            margin-top: 15px;
         }
 
         /* Media Query para telas menores */
@@ -331,7 +336,7 @@ $produtos = obterProdutosEstoque($offset, $itens_por_pagina);
             echo "<p>Total: R$ " . number_format($valor_total, 2, ',', '.') . "</p>";
             echo "<button>Comprar</button>";
             
-            // Botão de limpar carrinho
+            // Botão de limpar carrinho com margem superior
             echo "<form method='POST' action=''>
                     <button type='submit' name='limpar_carrinho'>Limpar Carrinho</button>
                   </form>";
