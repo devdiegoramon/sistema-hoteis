@@ -48,22 +48,30 @@
         }
 
         main {
-            width: 100%;
-            max-width: 600px;
-            padding: 20px;
-        }
-        
-        section {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        section {
+            text-align: center;
+            width: 100%;
         }
 
         section h2 {
-            text-align: center;
             font-size: 1.6em;
             margin-bottom: 20px;
+        }
+
+        .group-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
         }
 
         /* Estilo dos botões */
@@ -74,6 +82,7 @@
             font-size: 1.2em;
             margin: 10px 0;
             width: 100%;
+            max-width: 300px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -85,20 +94,7 @@
         }
 
         /* Responsividade para mobile-first */
-        @media (min-width: 768px) {
-            button {
-                width: 48%; /* 2 botões por linha */
-                display: inline-block;
-                margin-right: 4%;
-            }
-
-            button:nth-child(2n) {
-                margin-right: 0; /* Para o segundo botão não ter margem direita */
-            }
-        }
-
         @media (min-width: 1024px) {
-            /* Ajustes para telas maiores */
             header {
                 padding: 30px;
             }
@@ -122,10 +118,13 @@
     <main>
         <section>
             <h2>Serviços Disponíveis</h2>
-            <button onclick="window.location.href='frigobar/index.php'">Acessar Frigobar</button>
-            <button onclick="window.location.href='estacionamento/index.php'">Consultar Estacionamento</button>
-            <button onclick="window.location.href='financeiro/index.php'">Ver Pagamentos</button>
-            <button onclick="window.location.href='atendimento/index.php'">Chamar Atendimento</button>
+
+            <div class="group-button">
+                <button onclick="window.location.href='frigobar/index.php'">Acessar Frigobar</button>
+                <button onclick="window.location.href='estacionamento/index.php'">Consultar Estacionamento</button>
+                <button onclick="window.location.href='financeiro/index.php'">Ver Pagamentos</button>
+                <button onclick="window.location.href='atendimento/index.php'">Chamar Atendimento</button>
+            </div>
         </section>
     </main>
 </body>
