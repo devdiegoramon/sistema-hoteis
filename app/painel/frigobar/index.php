@@ -1,349 +1,372 @@
 <?php
-session_start();  // Inicia a sessão
+session_start();
 
-// Verifica se o carrinho já existe, se não, cria um
-if (!isset($_SESSION['carrinho'])) {
-    $_SESSION['carrinho'] = array();
+// Initialize cart
+$_SESSION['carrinho'] = $_SESSION['carrinho'] ?? [];
+
+// Database connection
+$config = [
+    'host' => 'localhost',
+    'user' => 'admin',
+    'pass' => '',
+    'db'   => 'sistema_hoteis_prosync'
+];
+
+try {
+    $pdo = new PDO("mysql:host={$config['host']};dbname={$config['db']};charset=utf8", $config['user'], $config['pass']);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Erro de conexão: " . $e->getMessage());
 }
 
-// Conexão com o banco de dados
-$servidor = "localhost";
-$usuario = "admin";
-$senha = "";
-$banco = "sistema_hoteis_prosync";
-
-$con = new mysqli($servidor, $usuario, $senha, $banco);
-
-if ($con->connect_error) {
-    die("Erro de conexão: " . $con->connect_error);
+// Function to get products from stock with quantity check
+function getStockProducts($offset, $limit) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT iditem, item, categoria, valorunitario, quantidade FROM estoque WHERE ativo = 's' LIMIT :limit OFFSET :offset");
+    $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Função para obter os produtos do estoque
-function obterProdutosEstoque($offset, $limit) {
-    global $con;
-    // Alterei a consulta SQL para pegar apenas produtos com estoque maior que 0
-    $sql = "SELECT iditem, item, categoria, valorunitario, quantidade FROM estoque WHERE ativo = 's' AND quantidade > 0 LIMIT {$limit} OFFSET {$offset}";
-    $result = mysqli_query($con, $sql);
-    if (mysqli_num_rows($result) > 0) {
-        return $result;
-    }
-    return false;
-}
-
-// Lógica para adicionar produto ao carrinho
-if (isset($_GET['id']) && isset($_POST['quantidade'])) {
-    $iditem = (int)$_GET['id'];
+// Add product to cart
+if (isset($_POST['add_to_cart'], $_POST['iditem'], $_POST['quantidade'])) {
+    $iditem = (int)$_POST['iditem'];
     $quantidade = (int)$_POST['quantidade'];
 
-    // Verifica se a quantidade é maior que 0
     if ($quantidade > 0) {
-        // Consulta o produto pelo ID
-        $sql = "SELECT iditem, item, categoria, valorunitario, quantidade FROM estoque WHERE iditem = {$iditem}";
-        $result = mysqli_query($con, $sql);
+        $stmt = $pdo->prepare("SELECT iditem, item, categoria, valorunitario, quantidade FROM estoque WHERE iditem = :iditem AND quantidade >= :quantidade AND ativo = 's'");
+        $stmt->execute([':iditem' => $iditem, ':quantidade' => $quantidade]);
+        $produto = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($result && mysqli_num_rows($result) > 0) {
-            $produto = mysqli_fetch_assoc($result);
-
-            // Verifica se a quantidade no estoque é suficiente
-            if ($produto['quantidade'] >= $quantidade) {
-                // Verifica se o produto já está no carrinho
-                $existe = false;
-                foreach ($_SESSION['carrinho'] as $key => $item) {
-                    if ($item['iditem'] == $iditem) {
-                        // Atualiza a quantidade do produto no carrinho
-                        $_SESSION['carrinho'][$key]['quantidade'] += $quantidade;
-                        $existe = true;
-                        break;
-                    }
+        if ($produto) {
+            $found = false;
+            foreach ($_SESSION['carrinho'] as &$item) {
+                if ($item['iditem'] == $iditem) {
+                    $item['quantidade'] += $quantidade;
+                    $found = true;
+                    break;
                 }
-
-                // Se o produto não estiver no carrinho, adiciona um novo item
-                if (!$existe) {
-                    $produto['quantidade'] = $quantidade;  // Inicializa a quantidade com a selecionada
-                    $_SESSION['carrinho'][] = $produto;
-                }
-
-                // Atualizar quantidade do produto no estoque
-                $quantidade_adicionada = (int)$quantidade;  // Quantidade que o usuário deseja adicionar ao carrinho
-                $id_item = (int)$iditem;  // ID do produto
-
-                // Atualiza o estoque
-                $update_sql = "UPDATE estoque SET quantidade = quantidade - " . $quantidade_adicionada . " WHERE iditem = " . $id_item;
-                if (mysqli_query($con, $update_sql)) {
-                    // Redireciona para evitar a duplicação da adição ao carrinho
-                    header("Location: index.php");
-                    exit;
-                } else {
-                    echo "Erro ao atualizar estoque.";
-                }
-
-            } else {
-                echo "Quantidade solicitada maior do que a disponível em estoque.";
             }
-        } else {
-            echo "Produto não encontrado.";
+
+            if (!$found) {
+                $produto['quantidade'] = $quantidade;
+                $_SESSION['carrinho'][] = $produto;
+            }
+
+            $stmt = $pdo->prepare("UPDATE estoque SET quantidade = quantidade - :quantidade WHERE iditem = :iditem");
+            $stmt->execute([':quantidade' => $quantidade, ':iditem' => $iditem]);
+            
+            header("Location: index.php");
+            exit;
         }
-    } else {
-        echo "Selecione uma quantidade maior que 0.";
     }
 }
 
-// Função para limpar o carrinho e devolver as quantidades ao estoque
+// Clear cart
 if (isset($_POST['limpar_carrinho'])) {
     foreach ($_SESSION['carrinho'] as $item) {
-        $quantidade_restaurada = $item['quantidade'];
-        $iditem = (int)$item['iditem'];
-
-        // Atualiza o estoque
-        $update_sql = "UPDATE estoque SET quantidade = quantidade + {$quantidade_restaurada} WHERE iditem = {$iditem}";
-        mysqli_query($con, $update_sql);
+        $stmt = $pdo->prepare("UPDATE estoque SET quantidade = quantidade + :quantidade WHERE iditem = :iditem");
+        $stmt->execute([':quantidade' => $item['quantidade'], ':iditem' => $item['iditem']]);
     }
-
-    // Limpa o carrinho
-    unset($_SESSION['carrinho']);
-    header("Location: index.php");  // Redireciona para evitar reenvio do formulário
+    $_SESSION['carrinho'] = [];
+    header("Location: index.php");
     exit;
 }
 
-// Exibindo os produtos
-$itens_por_pagina = 10;
-$pagina_atual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
-$offset = ($pagina_atual - 1) * $itens_por_pagina;
+$produtos = getStockProducts(0, 50); // Show more items at once for mobile scroll
 
-$produtos = obterProdutosEstoque($offset, $itens_por_pagina);
+// Calculate cart totals
+$quantidade_total = 0;
+$valor_total = 0;
+foreach ($_SESSION['carrinho'] as $item) {
+    $quantidade_total += $item['quantidade'];
+    $valor_total += $item['quantidade'] * $item['valorunitario'];
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frigobar - Painel do Cliente</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #0066FF;
+            --primary-dark: #0052CC;
+            --success: #10B981;
+            --danger: #EF4444;
+            --background: #F3F4F6;
+            --surface: #FFFFFF;
+            --text: #111827;
+            --text-secondary: #6B7280;
+            --border: #E5E7EB;
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f4f4f4;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
-        h1 {
+        .container {
+            padding: 16px;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 24px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text);
             text-align: center;
-            color: #007bff;
         }
 
-        .table-container {
-            margin-top: 20px;
+        .products-grid {
+            display: grid;
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: #fff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .product-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        th, td {
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #ddd;
+        .product-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
         }
 
-        th {
-            background-color: #007bff;
-            color: white;
+        .product-category {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 12px;
         }
 
-        .pagination {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .pagination a {
-            padding: 8px 16px;
-            margin: 0 5px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .pagination a:hover {
-            background-color: #0056b3;
-        }
-
-        .cart-summary {
-            margin-top: 30px;
-            background-color: #fff;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .cart-summary p {
+        .product-price {
+            font-weight: 600;
+            color: var(--primary);
             font-size: 18px;
-            font-weight: bold;
+            margin-bottom: 16px;
         }
 
-        .cart-summary button {
-            padding: 10px 20px;
-            background-color: #28a745;
+        .add-to-cart-form {
+            display: flex;
+            gap: 8px;
+        }
+
+        .quantity-input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .add-button {
+            flex: 1;
+            background: var(--primary);
             color: white;
             border: none;
-            border-radius: 5px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
             cursor: pointer;
-            font-size: 16px;
-            width: 100%; /* Para ocupar a largura total do celular */
-            text-align: center;
-            transition: background-color 0.3s ease; /* Efeito suave ao passar o mouse */
+            transition: background-color 0.2s;
         }
 
-        .cart-summary button:hover {
-            background-color: #218838;
+        .add-button:hover {
+            background: var(--primary-dark);
         }
 
-        .cart-items {
-            margin-top: 20px;
+        .cart {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-top: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        form {
+        .cart-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: 500;
+        }
+
+        .cart-item-quantity {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .cart-item-price {
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        .cart-total {
+            margin-top: 16px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .cart-actions {
+            margin-top: 16px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
+            gap: 8px;
         }
 
-        form input[type="number"] {
-            width: 40%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            text-align: center;
-        }
-
-        form button {
-            width: 40%;
-            padding: 12px;
-            font-size: 16px;
-            background-color: #007bff;
+        .buy-button {
+            background: var(--success);
             color: white;
             border: none;
+            padding: 12px;
             border-radius: 8px;
+            font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.2s;
         }
 
-        form button:hover {
-            background-color: #0056b3;
+        .clear-button {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
 
-        form button:active {
-            background-color: #003d80;
+        .empty-cart {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 24px 0;
         }
 
-        /* Espaço entre os botões */
-        .cart-summary button + button {
-            margin-top: 15px;
+        @media (min-width: 640px) {
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
-        /* Media Query para telas menores */
-        @media (max-width: 600px) {
-            table, .cart-summary {
-                padding: 10px;
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 1024px;
+                margin: 0 auto;
             }
 
-            h1 {
-                font-size: 24px;
+            .products-grid {
+                grid-template-columns: repeat(3, 1fr);
             }
 
-            form input[type="number"] {
-                width: 100%;
-            }
-
-            form button {
-                width: 100%; /* Para o botão ocupar toda a largura da tela em dispositivos móveis */
-                font-size: 20px;
-            }
-
-            .pagination a {
-                padding: 12px;
-                font-size: 16px;
+            .title {
+                font-size: 32px;
             }
         }
     </style>
 </head>
 <body>
-    <h1>Itens do Frigobar</h1>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Categoria</th>
-                    <th>Preço</th>
-                    <th>Quantidade</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                if ($produtos) {
-                    while ($produto = mysqli_fetch_assoc($produtos)) {
-                        $quantidade_estoque = $produto['quantidade'];
-                        echo "<tr>";
-                        echo "<td>{$produto['item']}</td>";
-                        echo "<td>{$produto['categoria']}</td>";
-                        echo "<td>R$ " . number_format($produto['valorunitario'], 2, ',', '.') . "</td>";
-                        echo "<td>";
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Itens do Frigobar</h1>
+        </header>
 
-                        // Verificando a disponibilidade do estoque
-                        if ($quantidade_estoque > 0) {
-                            echo "<form method='POST' action='index.php?id={$produto['iditem']}'>
-                                    <input type='number' name='quantidade' min='1' max='{$quantidade_estoque}' value='1' required>
-                                    <button type='submit'>Adicionar</button>
-                                  </form>";
-                        } else {
-                            echo "<span>Indisponível</span>";
-                        }
+        <div class="products-grid">
+            <?php foreach ($produtos as $produto): ?>
+                <div class="product-card">
+                    <div class="product-name"><?= htmlspecialchars($produto['item']) ?></div>
+                    <div class="product-category"><?= htmlspecialchars($produto['categoria']) ?></div>
+                    <div class="product-price">R$ <?= number_format($produto['valorunitario'], 2, ',', '.') ?></div>
+                    <?php if ($produto['quantidade'] > 0): ?>
+                        <form class="add-to-cart-form" method="POST">
+                            <input type="hidden" name="iditem" value="<?= $produto['iditem'] ?>">
+                            <input type="number" 
+                                   class="quantity-input" 
+                                   name="quantidade" 
+                                   min="1" 
+                                   max="<?= $produto['quantidade'] ?>" 
+                                   value="1" 
+                                   required>
+                            <button type="submit" name="add_to_cart" class="add-button">
+                                Adicionar
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <div class="product-unavailable">Indisponível</div>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
 
-                        echo "</td>";
-                        echo "</tr>";
-                    }
-                } else {
-                    echo "<tr><td colspan='5'>Nenhum produto disponível.</td></tr>";
-                }
-                ?>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="cart-summary">
-        <h3>Carrinho</h3>
-        <?php
-        $quantidade_total = 0;
-        $valor_total = 0;
-
-        if (isset($_SESSION['carrinho']) && count($_SESSION['carrinho']) > 0) {
-            echo "<div class='cart-items'>";
-            foreach ($_SESSION['carrinho'] as $item) {
-                $quantidade_total += $item['quantidade'];
-                $valor_total += $item['quantidade'] * $item['valorunitario'];
-                echo "<p>{$item['item']} - Quantidade: {$item['quantidade']} - R$ " . number_format($item['valorunitario'], 2, ',', '.') . " x {$item['quantidade']}</p>";
-            }
-            echo "</div>";
-
-            echo "<p>Itens no carrinho: {$quantidade_total}</p>";
-            echo "<p>Total: R$ " . number_format($valor_total, 2, ',', '.') . "</p>";
-            echo "<button>Comprar</button>";
-            
-            // Botão de limpar carrinho com margem superior
-            echo "<form method='POST' action=''>
-                    <button type='submit' name='limpar_carrinho'>Limpar Carrinho</button>
-                  </form>";
-        } else {
-            echo "<p>Seu carrinho está vazio.</p>";
-        }
-        ?>
+        <div class="cart">
+            <h2 class="cart-title">Carrinho</h2>
+            <?php if (!empty($_SESSION['carrinho'])): ?>
+                <?php foreach ($_SESSION['carrinho'] as $item): ?>
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name"><?= htmlspecialchars($item['item']) ?></div>
+                            <div class="cart-item-quantity">Quantidade: <?= $item['quantidade'] ?></div>
+                        </div>
+                        <div class="cart-item-price">
+                            R$ <?= number_format($item['valorunitario'] * $item['quantidade'], 2, ',', '.') ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+                
+                <div class="cart-total">
+                    Total: R$ <?= number_format($valor_total, 2, ',', '.') ?>
+                </div>
+                
+                <div class="cart-actions">
+                    <button class="buy-button">Finalizar Compra</button>
+                    <form method="POST">
+                        <button type="submit" name="limpar_carrinho" class="clear-button">
+                            Limpar Carrinho
+                        </button>
+                    </form>
+                </div>
+            <?php else: ?>
+                <div class="empty-cart">
+                    Seu carrinho está vazio
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 </body>
 </html>
