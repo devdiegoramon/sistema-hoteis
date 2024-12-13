@@ -126,8 +126,6 @@
                         'title' => 'Estacionamento',
                         'description' => 'Verifique disponibilidade e status',
                         'icon' => '<path d="M3 11c-1.1 0-2 .9-2 2v3c0 .55.45 1 1 1h1c0 1.1.9 2 2 2s2-.9 2-2h8c0 1.1.9 2 2 2s2-.9 2-2h1c.55 0 1-.45 1-1v-3c0-1.1-.9-2-2-2H3zm0 2h14v3H3v-3zm3 1.5c-.83 0-1.5.67-1.5 1.5S5.17 17 6 17s1.5-.67 1.5-1.5S6.83 14.5 6 14.5zm10 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM5 9l1.5-4.5h11L19 9H5z"></path>',
-                        
-
                         'link' => 'estacionamento/index.php'
                     ],
                     [

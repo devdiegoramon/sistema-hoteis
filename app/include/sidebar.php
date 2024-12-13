@@ -30,6 +30,7 @@ $resultLogo = mysqli_query($con, $sqlLogo);
                 <a href="<?= BASED ?>/financeiro/" class="nav_link"> <i class='bx bx-money-withdraw nav_icon'></i> <span class="nav_name">Financeiro</span> </a> 
                 <a href="<?= BASED ?>/pagamentos/" class="nav_link"> <i class='bx bxs-credit-card-alt nav_icon'></i><span class="nav_name">Pagamentos</span> </a> 
                 <a href="<?= BASED ?>/hospedagem/" class="nav_link"> <i class="bx bxs-home nav_icon"></i><span class="nav_name">Pousada / Hotel</span> </a> 
+                <a href="<?= BASED ?>/pedidos/" class="nav_link"> <i class="bx bxs-home nav_icon"></i><span class="nav_name">Pedidos</span> </a> 
                 <a href="<?= BASED ?>/admin/" class="nav_link"> <i class='bx bxs-lock-open nav_icon'></i> <span class="nav_name">Administrador</span> </a> 
             <?php } ?>
 <!--<a href="<?= BASED ?>/relatorios/" class="nav_link"> <i class='bx bx-file nav_icon'></i> <span class="nav_name">Relatórios</span> </a>--> 

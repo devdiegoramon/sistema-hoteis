@@ -22,9 +22,13 @@ $result_historico = mysqli_query($con, $sql_historico);
 
 // Handle PDF export
 if (isset($_GET['export']) && $_GET['export'] === 'pdf') {
-    require_once '../vendor/autoload.php'; // Inclui o autoload do Composer
+    require('../vendor/fpdf/fpdf.php');
 
-    $mpdf = new \Mpdf\Mpdf();
+    $pdf = new FPDF();
+    $pdf->AddPage();
+    $pdf->SetFont('Arial', 'B', 16);
+    $pdf->Cell(190, 10, 'Relatório de Pedidos', 0, 1, 'C');
+    $pdf->SetFont('Arial', '', 12);
 
     // Fetch orders for PDF
     $sql_pdf = "SELECT p.id, p.data_pedido, p.status, c.nome as cliente, a.nome as acomodacao, p.valor_total
@@ -34,36 +38,14 @@ if (isset($_GET['export']) && $_GET['export'] === 'pdf') {
                 ORDER BY p.data_pedido DESC";
     $result_pdf = mysqli_query($con, $sql_pdf);
 
-    // Generate HTML for PDF
-    $html = '<h1 style="text-align:center;">Relatório de Pedidos</h1>';
-    $html .= '<table border="1" cellpadding="5" style="width:100%; border-collapse:collapse;">
-                <tr>
-                    <th>ID</th>
-                    <th>Data</th>
-                    <th>Cliente</th>
-                    <th>Acomodação</th>
-                    <th>Valor Total</th>
-                    <th>Status</th>
-                </tr>';
-
     while ($row = mysqli_fetch_assoc($result_pdf)) {
-        $html .= '<tr>
-                    <td>' . $row['id'] . '</td>
-                    <td>' . date('d/m/Y H:i', strtotime($row['data_pedido'])) . '</td>
-                    <td>' . $row['cliente'] . '</td>
-                    <td>' . $row['acomodacao'] . '</td>
-                    <td>R$ ' . number_format($row['valor_total'], 2, ',', '.') . '</td>
-                    <td>' . $row['status'] . '</td>
-                  </tr>';
+        $pdf->Cell(30, 10, 'ID: ' . $row['id'], 0, 0);
+        $pdf->Cell(40, 10, 'Cliente: ' . $row['cliente'], 0, 0);
+        $pdf->Cell(40, 10, 'Acomodação: ' . $row['acomodacao'], 0, 0);
+        $pdf->Cell(40, 10, 'Valor: R$ ' . number_format($row['valor_total'], 2, ',', '.'), 0, 1);
     }
 
-    $html .= '</table>';
-
-    // Write HTML to PDF
-    $mpdf->WriteHTML($html);
-
-    // Output PDF
-    $mpdf->Output('relatorio_pedidos.pdf', 'D'); // 'D' força o download
+    $pdf->Output('D', 'relatorio_pedidos.pdf');
     exit;
 }
 

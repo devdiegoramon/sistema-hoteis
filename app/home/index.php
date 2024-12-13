@@ -303,3 +303,4 @@ $dataSemana = date('Y-m-d', strtotime("-7 day", strtotime(date('Y-m-d'))));
         <script src="<?= BASED ?>/assets/js/sidebar.js"></script>
     </body>
 </html>
+
