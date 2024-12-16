@@ -1,10 +1,19 @@
 <?php
 session_start();
 
-// Initialize cart
-$_SESSION['carrinho'] = $_SESSION['carrinho'] ?? [];
+// Inicializar carrinho se não existir no cookie
+if (isset($_COOKIE['carrinho'])) {
+    $_SESSION['carrinho'] = json_decode($_COOKIE['carrinho'], true);
+} else {
+    $_SESSION['carrinho'] = $_SESSION['carrinho'] ?? [];
+}
 
-// Database connection
+// Função para armazenar carrinho em cookie
+function saveCartToCookie() {
+    setcookie('carrinho', json_encode($_SESSION['carrinho']), time() + 3600, '/'); // 1 hora de validade
+}
+
+// Conexão
 $config = [
     'host' => 'localhost',
     'user' => 'admin',
@@ -19,7 +28,7 @@ try {
     die("Erro de conexão: " . $e->getMessage());
 }
 
-// Function to get products from stock with quantity check
+// Função que puxa o estoque
 function getStockProducts($offset, $limit) {
     global $pdo;
     $stmt = $pdo->prepare("SELECT iditem, item, categoria, valorunitario, quantidade FROM estoque WHERE ativo = 's' LIMIT :limit OFFSET :offset");
@@ -29,7 +38,7 @@ function getStockProducts($offset, $limit) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Add product to cart
+// Adicionar produto ao carrinho
 if (isset($_POST['add_to_cart'], $_POST['iditem'], $_POST['quantidade'])) {
     $iditem = (int)$_POST['iditem'];
     $quantidade = (int)$_POST['quantidade'];
@@ -57,32 +66,37 @@ if (isset($_POST['add_to_cart'], $_POST['iditem'], $_POST['quantidade'])) {
             $stmt = $pdo->prepare("UPDATE estoque SET quantidade = quantidade - :quantidade WHERE iditem = :iditem");
             $stmt->execute([':quantidade' => $quantidade, ':iditem' => $iditem]);
             
+            // Salvar o carrinho no cookie
+            saveCartToCookie();
+            
             header("Location: index.php");
             exit;
         }
     }
 }
 
-// Clear cart
+// Apagar Carrinho
 if (isset($_POST['limpar_carrinho'])) {
     foreach ($_SESSION['carrinho'] as $item) {
         $stmt = $pdo->prepare("UPDATE estoque SET quantidade = quantidade + :quantidade WHERE iditem = :iditem");
         $stmt->execute([':quantidade' => $item['quantidade'], ':iditem' => $item['iditem']]);
     }
     $_SESSION['carrinho'] = [];
+    setcookie('carrinho', '', time() - 3600, '/'); // Remover o cookie
     header("Location: index.php");
     exit;
 }
 
-$produtos = getStockProducts(0, 50); // Show more items at once for mobile scroll
+$produtos = getStockProducts(0, 50);
 
-// Calculate cart totals
+// Total do pedido
 $quantidade_total = 0;
 $valor_total = 0;
 foreach ($_SESSION['carrinho'] as $item) {
     $quantidade_total += $item['quantidade'];
     $valor_total += $item['quantidade'] * $item['valorunitario'];
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -92,11 +106,60 @@ foreach ($_SESSION['carrinho'] as $item) {
     <title>Frigobar - Painel do Cliente</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        // Função para rolar suavemente até o carrinho
+        document.addEventListener("DOMContentLoaded", function() {
+            const cartLink = document.querySelector('a[href="#cart"]');
+            cartLink.addEventListener('click', function(event) {
+                event.preventDefault(); // Impede o comportamento padrão de rolar
+                document.getElementById('cart').scrollIntoView({ behavior: 'smooth' });
+            });
+
+            // Contador de 10 segundos
+            let countdown = 10; // 10 segundos
+const countdownElement = document.getElementById('countdown');
+const timer = setInterval(function() {
+    countdownElement.textContent = countdown + 's';
+    countdown--;
+    if (countdown < 0) {
+        clearInterval(timer);
+
+        // cria uma requisição pra apagar o carrinho
+        const form = document.createElement('form');
+        form.method = 'POST';
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'limpar_carrinho';
+        input.value = 'true';
+        form.appendChild(input);
+        
+        // Envia o formulário
+        document.body.appendChild(form);
+        form.submit();
+    }
+}, 1000);
+
+        });
+    </script>
 </head>
 <body>
     <div class="container">
         <header class="header">
             <h1 class="title">Itens do Frigobar</h1>
+            <!-- Contador de tempo no canto superior direito -->
+            <div class="timer">
+                <span id="countdown">10s</span>
+            </div>
+            <!-- Carrinho no canto superior direito -->
+            <div class="cart-icon">
+                <a href="#cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">
+                        <?= count($_SESSION['carrinho']) ?> <!-- Exibe a quantidade de itens no carrinho -->
+                    </span>
+                </a>
+            </div>
         </header>
 
         <div class="products-grid">
@@ -126,7 +189,7 @@ foreach ($_SESSION['carrinho'] as $item) {
             <?php endforeach; ?>
         </div>
 
-        <div class="cart">
+        <div class="cart" id="cart">
             <h2 class="cart-title">Carrinho</h2>
             <?php if (!empty($_SESSION['carrinho'])): ?>
                 <?php foreach ($_SESSION['carrinho'] as $item): ?>
@@ -163,5 +226,8 @@ foreach ($_SESSION['carrinho'] as $item) {
             <?php endif; ?>
         </div>
     </div>
+    <script>
+        // adcionar cookies para resetar ao sair da página
+    </script>
 </body>
 </html>

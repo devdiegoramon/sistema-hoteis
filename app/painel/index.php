@@ -122,18 +122,6 @@
                         'icon' => '<path d="M18 8h-1V6c0-1.1-.9-2-2-2H5C3.9 4 3 4.9 3 6v5c0 2.76 2.24 5 5 5h4c2.76 0 5-2.24 5-5v-1h1c1.65 0 3-1.35 3-3s-1.35-3-3-3zm-3 3c0 1.66-1.34 3-3 3H8c-1.66 0-3-1.34-3-3V6h10v5zm3-2h-1V6h1c.55 0 1 .45 1 1s-.45 1-1 1zm-4 8H5c-.55 0-1 .45-1 1s.45 1 1 1h10c.55 0 1-.45 1-1s-.45-1-1-1z"></path>',
                         'link' => 'frigobar/index.php'
                     ],
-                     [
-                        'title' => 'Estacionamento',
-                        'description' => 'Verifique disponibilidade e status',
-                        'icon' => '<path d="M3 11c-1.1 0-2 .9-2 2v3c0 .55.45 1 1 1h1c0 1.1.9 2 2 2s2-.9 2-2h8c0 1.1.9 2 2 2s2-.9 2-2h1c.55 0 1-.45 1-1v-3c0-1.1-.9-2-2-2H3zm0 2h14v3H3v-3zm3 1.5c-.83 0-1.5.67-1.5 1.5S5.17 17 6 17s1.5-.67 1.5-1.5S6.83 14.5 6 14.5zm10 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM5 9l1.5-4.5h11L19 9H5z"></path>',
-                        'link' => 'estacionamento/index.php'
-                    ],
-                    [
-                        'title' => 'Pagamentos',
-                        'description' => 'Consulte suas despesas e faturas',
-                        'icon' => '<path d="M20 4h-16c-1.11 0-1.99 0.89-1.99 2l-0.01 12c0 1.11 0.89 2 2 2h16c1.11 0 2-0.89 2-2v-12c0-1.11-0.89-2-2-2zm0 14h-16v-6h16v6zm0-10h-16v-2h16v2z"></path>',
-                        'link' => 'financeiro/index.php'
-                    ],
                     [
                         'title' => 'Atendimento',
                         'description' => 'Solicite ajuda ou serviços',
