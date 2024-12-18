@@ -7,7 +7,7 @@ if (isset($_POST['seguranca'])) {
     ?>
     
     <div class="table-responsive col-lg-12"> 
-        <table style="border-radius:10px;" class="table-card table table-secondary table-hover table-striped" id="datatable" "> 
+        <table style="border-radius:10px;" class="table-card table table-secondary table-hover table-striped" id="datatable"> 
             <thead style="border-radius:3em;"> 
                 <tr> 
                     <th> ID </th>
@@ -20,42 +20,57 @@ if (isset($_POST['seguranca'])) {
             </thead>
             <tbody>
                 <?php
-                //Acomodações disponíveis hoje
-                $sqlAcomodacao = "SELECT idacomodacao,
-                                      nome,
-                                      numero,
-                                      valor
-                                FROM acomodacao";
+                // Acomodações ativas disponíveis hoje
+                $sqlAcomodacao = "SELECT idacomodacao, nome, numero, valor
+                                  FROM acomodacao
+                                  WHERE ativo = 's'";
                 $resultAcomodacao = mysqli_query($con, $sqlAcomodacao);
                 while ($rowAcomodacao = mysqli_fetch_array($resultAcomodacao)) {
-                    //Acomodações disponíveis hoje
+                    $idacomodacao = intval($rowAcomodacao['idacomodacao']);
+                    
+                    // Acomodações disponíveis hoje
                     $sqlAcDisponiveis = "SELECT idreserva FROM reserva
-                                         WHERE (status = 'i' OR (entradaprevista = '{$dataAtual}' AND status = 'p'))
-                                         AND idacomodacao = {$rowAcomodacao[0]}";
-                    $resultAcDisponiveis = mysqli_query($con, $sqlAcDisponiveis);
+                                         WHERE (status = 'i' OR (entradaprevista = ? AND status = 'p'))
+                                         AND idacomodacao = ?";
+                    $stmtAcDisponiveis = mysqli_prepare($con, $sqlAcDisponiveis);
+                    mysqli_stmt_bind_param($stmtAcDisponiveis, "si", $dataAtual, $idacomodacao);
+                    mysqli_stmt_execute($stmtAcDisponiveis);
+                    $resultAcDisponiveis = mysqli_stmt_get_result($stmtAcDisponiveis);
+                    
                     if (mysqli_num_rows($resultAcDisponiveis) == 0) {
                         $sqlProxReserva = "SELECT MIN(entradaprevista)
                                            FROM reserva
-                                           WHERE idacomodacao = {$rowAcomodacao[0]}
-                                           AND status != 'c'    
-                                           ";
-                        $resultProxReserva = mysqli_query($con, $sqlProxReserva);
+                                           WHERE idacomodacao = ?
+                                           AND status != 'c'";
+                        $stmtProxReserva = mysqli_prepare($con, $sqlProxReserva);
+                        mysqli_stmt_bind_param($stmtProxReserva, "i", $idacomodacao);
+                        mysqli_stmt_execute($stmtProxReserva);
+                        $resultProxReserva = mysqli_stmt_get_result($stmtProxReserva);
                         $rowProxReserva = mysqli_fetch_array($resultProxReserva);
+                        
                         echo "
                             <tr> 
-                                <td> $rowAcomodacao[0] </td>
-                                <td> $rowAcomodacao[1] </td>
-                                <td> $rowAcomodacao[2] </td>
-                                <td> R$ " . converteReal($rowAcomodacao[3]) . " </td>
-                                <td> " . dataBrasil($rowProxReserva[0]) . " </td>
-                                <td class='text-center' title='visualizar'> <a href='../acomodacao/visualizarAcomodacao.php?id=$rowAcomodacao[0]' class='badge-card badge bg-blue1'> <i class='fa-solid fa-eye'></i> </a> </td>    
+                                <td>" . htmlspecialchars($rowAcomodacao['idacomodacao']) . "</td>
+                                <td>" . htmlspecialchars($rowAcomodacao['nome']) . "</td>
+                                <td>" . htmlspecialchars($rowAcomodacao['numero']) . "</td>
+                                <td>R$ " . converteReal($rowAcomodacao['valor']) . "</td>
+                                <td>" . dataBrasil($rowProxReserva[0]) . "</td>
+                                <td class='text-center' title='visualizar'>
+                                    <a href='../acomodacao/visualizarAcomodacao.php?id=" . htmlspecialchars($rowAcomodacao['idacomodacao']) . "' class='badge-card badge bg-blue1'>
+                                        <i class='fa-solid fa-eye'></i>
+                                    </a>
+                                </td>    
                             </tr>
-                            ";
+                        ";
+                        
+                        mysqli_stmt_close($stmtProxReserva);
                     }
+                    
+                    mysqli_stmt_close($stmtAcDisponiveis);
                 }
                 ?>
+            </tbody>
         </table>
-    </tbody>
     </div>
     <?php
     mysqli_close($con);
@@ -63,3 +78,4 @@ if (isset($_POST['seguranca'])) {
     $text = "Sem acesso";
     header("Location: ../../../index.php?text=$text&type=1");
 }
+?>

@@ -13,7 +13,7 @@ if (isset($_GET['gerar'])) {
     $dataSemana = date('Y-m-d', strtotime("-7 day", strtotime(date('Y-m-d'))));
     
     $sqlUltimaSemana = "SELECT r.idreserva,
-                               r.idacomodacao,
+                               r.idacomodacao,f
                                r.entradaprevista,
                                r.saidaprevista,
                                r.status,

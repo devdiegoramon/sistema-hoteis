@@ -17,7 +17,7 @@ if (!isset($_GET['id'])) {
     <!--//VERIFICAÇÃO DE BOTÕES DE CHECKIN-->
     <div class="col-md-6 d-flex justify-content-md-end justify-content-sm-start"> 
         <?php if ($rowReserva[12] !== 'c') { ?>
-            <div> 
+            <div>
                 <?php
                 if ($rowReserva['datacheckin'] == null) {
                     if (date("Y-m-d") >= $rowReserva['entradaprevista']) {
