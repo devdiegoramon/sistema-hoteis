@@ -167,7 +167,6 @@ function dadosCheckin(idreserva) {
     });
 }
 
-// checkin.js
 function realizarCheckin(idreserva) {
     let url = "include/mCheck-in.php";
     $('#modalCheckin').modal('show');
@@ -175,17 +174,15 @@ function realizarCheckin(idreserva) {
         url: url,
         dataType: 'html',
         type: 'POST',
-        data: { idreserva },
+        data: {idreserva},
         success: function (data) {
             $('#cModalCheckin').html(data);
         },
-        error: function (xhr) {
-            let errorMessage = `Ocorreu um erro ao processar sua solicitação. Código do erro: ${xhr.status}`;
-            $('#cModalCheckin').html(errorMessage);
+        error: function (xhr, er, index, anchor) {
+            $('#cModalCheckin').html('Error ' + xhr.status);
         }
     });
 }
-
 
 //CHECKOUT
 function dadosCheckout(idreserva) {

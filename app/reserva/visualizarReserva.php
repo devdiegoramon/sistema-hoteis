@@ -378,8 +378,13 @@ include "include/cDadosReserva.php";
     <script src="<?= BASED ?>/assets/vendor/date-picker/bootstrap-datepicker.min.js"></script>
     <script src="<?= BASED ?>/assets/vendor/date-picker/datepicker.pt-BR.min.js"></script>
     <!--js-->
-    <script src="<?= BASED ?>/assets/js/main.js"></script>
+    <!--<script src="<?= BASED ?>/assets/js/main.js"></script>-->
     <script src="<?= BASED ?>/assets/js/sidebar.js"></script>
     <script src="js/reserva.js"></script>
 </body>
 </html>
+
+<!--    
+    Script criado e desenvolvido por: Herrison Trugilho 
+    Email para contato: herrison.sistemas@gmail.com
+-->
