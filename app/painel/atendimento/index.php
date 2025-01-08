@@ -1,19 +1,8 @@
 <?php
-session_start();
-$config = [
-    'host' => 'localhost',
-    'user' => 'admin',
-    'pass' => '',
-    'db'   => 'sistema_hoteis_prosync'
-];
-
-try {
-    $pdo = new PDO("mysql:host={$config['host']};dbname={$config['db']};charset=utf8", $config['user'], $config['pass']);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Erro de conexão: " . $e->getMessage());
-}
-
+include "../../config/config.php";
+include "../../config/connMysql.php";
+include "../../include/func.php";
+include "../../include/components.php";
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">

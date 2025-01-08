@@ -1,4 +1,6 @@
 <?php
+
+$pdo = null;
 // Conectar ao banco de dados
 $con = mysqli_connect('localhost', 'root', '', 'sistema_hoteis_prosync');
 
